@@ -4,6 +4,35 @@
   
     
     <entry>
+      <title>浅谈提示工程</title>
+      <link href="/posts/38c22287.html"/>
+      <url>/posts/38c22287.html</url>
+      
+        <content type="html"><![CDATA[<div class="note blue icon-padding flat"><i class="note-icon fas fa-pencil"></i><p><span class="fakeTitle">为什么要写这篇博客？</span><br>虽然用了不少时间的 LLM，但是我从来没有花时间研究过如何写好提示词，都是想到什么就输入什么，不在意提示词的质量。对于一般场景，我们的输入随意一些并不会特别影响 LLM 的输出结果；而且随着技术的不断改进，只要简单讲几句，LLM 就能参透我们的意思。然而，如果要求 LLM 完成一些精密的任务，那么只是简单地提一些要求，LLM 就无法按照我们预期所想的那样解决问题，总会在某些地方出岔子。这个时候，也许有些人就会红温，不仅抱怨道：“这个模型怎么这么蠢啊！”——也许这不是因为 LLM 不够聪明，而是我们人类不够走心，</p><p>最近科研项目那边分配给我的任务是修改原有的提示词，以提高程序生成可视化数据的成功率；而且现在是开学前几周，也没有什么特别紧急且重要的任务，所以我就腾出一些时间，稍微学习了一下<strong>提示工程</strong>(prompt engineering)相关的知识，希望能利用这些知识写出高质量的提示词，少走一些弯路。</p><p>如果你是 AI 小白的话，那么希望这篇博客对你熟练掌握 AI 工具有所帮助！</p></div><h2 id="提示工程">提示工程</h2><p>在了解提示工程之前，首先要知道“<strong>提示词</strong>”(prompt)是什么——它是为模型提供的输入，引导 AI 模型来生成特定的输出。</p><p>而<strong>提示工程</strong>就是一种通过设计和调整输入（提示词）来改善模型性能或控制器输出结果的技术。提示词的好坏可能让模型的回答质量有着天壤之别，因此为了获得理想的模型结果，我们需要不断调整、设计好的提示词，这就是提示工程要做的事。</p><div class="note warning flat"><p><span class="fakeTitle">误区警告</span><br>很多人会认为，提示词指的就是<strong>用户的输入</strong>——这是常见的误区。实际上，提示词的输入不仅包含用户的输入，还有其他来源，比如<strong>预设的提示词</strong>，甚至<strong>模型自己的输出</strong>都是提示词的一部分。</p></div><p>简言之，<strong>所有会被模型用于预测输出结果的内容，都是提示词</strong>。</p><h3 id="重要性">重要性</h3><p>提示工程很重要。</p><ul><li><p>提示词是调用大模型能力的<strong>接口</strong>，是<u>用好</u>大模型能力的核心</p></li><li><p>在 LLM 应用的开发和性能优化的过程中，提示工程贯穿始终</p>  <div style="text-align: center">      <img src="../img/prompt/1.png" width="90%">  </div><ul><li>一切 LLM 应用推荐先从提示工程着手建立原型，作为<strong>性能优化的基石</strong></li><li>若提示工程无法满足需求，再分析性能瓶颈的原因，采取进一步策略</li><li>比如通过 <strong>RAG</strong>（检索增强生成）构造更好的模型输入，所以 RAG 本质上也是一种提示工程</li><li>若要使用<strong>微调</strong>(fine-tuning)，通过提示工程构造高质量的微调数据也是微调成功的关键</li><li>模型性能提升后，数据质量进一步提升，将更优质的数据用于模型训练，然后更好的模型产出更好的数据，如此构建正向迭代循环（也称<strong>数据飞轮</strong>），其中每个环节都离不开好的提示工程</li></ul></li></ul><h2 id="如何写好提示词">如何写好提示词</h2><h3 id="六大原则（by-OpenAI）">六大原则（by OpenAI）</h3><p>OpenAI 官方的提示工程文档总结了六大原则（链接贴在最后的“参考资料”部分），这里简单总结一下：</p><ol><li><strong>指令要清晰</strong>(Write clear instructions)</li><li><strong>提供参考内容</strong>(Provide reference text)</li><li><strong>将复杂的任务拆分成子任务</strong>(Split complex tasks into simpler substasks)</li><li><strong>给 GPT “思考”实践（给出过程）</strong>(Give the model time to “think”)</li><li><strong>使用外部工具</strong>(Use external tools)</li><li><strong>系统性测试变化</strong>(Test changes systematically)</li></ol><h3 id="提示词框架-方法论">提示词框架&amp;方法论</h3><p>现在有各种各样的提示词框架，帮助我们写好提示词，这里就举一个 CRISPE 框架的例子：</p><ul><li>CR：Capacity and Role（能力和角色）。你希望 ChatGPT 扮演怎样的角色。</li><li>I：Insight（洞察力）。背景信息和上下文（<s>看不出与“洞察力”一词有什么关系</s>）。</li><li>S：Statement（指令）。你希望 ChatGPT 做什么。</li><li>P：Personality（个性）。你希望 ChatGPT 以什么风格或方式回答你。</li><li>E：Experiment（实验）。要求 ChatGPT 提供多个答案。</li></ul><div class="note purple icon-padding flat"><i class="note-icon fas fa-list"></i><p><span class="fakeTitle">例子</span></p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Act as an expert on software development on the topic of machine learning frameworks, and an expert blog writer. The audience for this blog is technical professionals who are interested in learning about the latest advancements in machine learning. Provide a comprehensive overview of the most popular machine learning frameworks, including their strengths and weaknesses. Include real-life examples and case studies to illustrate how these frameworks have been successfully used in various industries. When responding, use a mix of the writing styles of Andrej Karpathy, Francois Chollet, Jeremy Howard, and Yann LeCun.</span><br></pre></td></tr></table></figure></div><p><span class="fakeTitle" style="text-align: center">Prompt is All You Need!</span></p><h2 id="参考资料">参考资料</h2><ul><li><a href="https://github.com/langgptai/LangGPT">开源仓库：LangGPT</a>：国内最大的提示词社区</li><li><a href="https://langgptai.feishu.cn/wiki/VXmowI2boiqVFVkj9vlcNkhNnce">云中江树 | LangGPT 社区年度分享：AI 交流的艺术</a></li><li><a href="https://langgptai.feishu.cn/wiki/IpdUwZRzgiYYH7kuOsDc3fWrnkg?fromScene=spaceOverview">熊猫Jay | 万字解读ChatGPT提示词最佳案例</a></li><li><a href="https://platform.openai.com/docs/guides/prompt-engineering">OpenAI | Prompt engineering</a></li><li><a href="https://www.youtube.com/watch?v=ahnGLM-RC1Y&amp;t=233s&amp;ab_channel=OpenAI">OpenAI | A Survey of Techniques for Maximizing LLM Performance</a></li><li><a href="https://github.com/mattnigh/ChatGPT3-Free-Prompt-List">开源仓库：ChatGPT3 Prompt Engineering</a>：里面提出了 CRISPE 框架</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> CS 笔记 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI </tag>
+            
+            <tag> LLM </tag>
+            
+            <tag> Prompt Engineering </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>大二秋冬 课程回忆录</title>
       <link href="/posts/65e331c3.html"/>
       <url>/posts/65e331c3.html</url>

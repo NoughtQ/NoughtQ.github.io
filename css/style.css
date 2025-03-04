@@ -55,3 +55,12 @@ body {
   .heimu:active .new, .heimu .new:active, .new:active .heimu {
     color: #BA0000 !important;
   }
+
+/* 假标题，类似标题的样式，但不会被目录包括进去 */
+.fakeTitle {
+  font-size: 1.3em;
+  font-weight: 600;
+  margin: .8em .4em .8em
+}
+
+
