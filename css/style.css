@@ -1,0 +1,66 @@
+@font-face{
+    font-family: 'JetBrains Mono';
+    font-display: swap;
+    src: url('../font/JetBrainsMono-Regular.ttf') format("truetype");
+}
+@font-face{
+    font-family: 'LXGW WenKai GB Screen';
+    font-display: swap;
+    src: url('../font/LXGWWenKaiGBScreen.ttf') format("truetype");
+}
+body {
+    font-size: 1.1em
+}
+
+#nav-right{
+    flex:1 1 auto;
+    justify-content: flex-end;
+    margin-left: auto;
+    display: flex;
+    flex-wrap:nowrap;
+}
+
+.menus_item_child li:not(#sidebar-menus li){
+    float: left;
+    border-radius: 6px!important;
+    -webkit-border-radius: 6px!important;
+    -moz-border-radius: 6px!important;
+    -ms-border-radius: 6px!important;
+    -o-border-radius: 6px!important;
+}
+.menus_item_child:not(#sidebar-menus ul){
+  /*
+    left:calc(-150%)!important;这是估算值，为了保持元素居中的，如果不合适可以自己调
+  改为：*/
+  left:50%;
+  translate:-50%;
+}
+
+/* heimu moegirl */
+
+.heimu, .heimu a, a .heimu, .heimu a.new {
+    background-color: #252525;
+    color: #252525;
+    text-shadow: none;
+  }
+  .heimu:hover, .heimu:active,
+  .heimu:hover .heimu, .heimu:active .heimu {
+    color: white !important;
+  }
+  .heimu:hover a, a:hover .heimu,
+  .heimu:active a, a:active .heimu {
+    color: lightblue !important;
+  }
+  .heimu:hover .new, .heimu .new:hover, .new:hover .heimu,
+  .heimu:active .new, .heimu .new:active, .new:active .heimu {
+    color: #BA0000 !important;
+  }
+
+/* 假标题，类似标题的样式，但不会被目录包括进去 */
+.fakeTitle {
+  font-size: 1.3em;
+  font-weight: 600;
+  /* margin: .8em .4em .8em */
+}
+
+

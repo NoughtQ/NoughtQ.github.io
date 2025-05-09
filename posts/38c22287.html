@@ -1,0 +1,537 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>浅谈提示工程 | NoughtQ's Blog</title><meta name="author" content="NoughtQ"><meta name="copyright" content="NoughtQ"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="引入 虽然用了不少时间的 LLM，但是我从来没有花时间研究过如何写好提示词，都是想到什么就输入什么，从不在意提示词的质量。对于一般场景，我们的输入随意一些并不会特别影响 LLM 的输出结果；而且随着技术的不断改进，只要简单讲几句，LLM 就能参透我们的意思。然而，如果要求 LLM 完成一些复杂的任务，那么只是简单地提一些要求，LLM 就无法按照我们预期所想的那样解决问题，总会在某些地方出岔子。这个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈提示工程">
+<meta property="og:url" content="http://blog.noughtq.top/posts/38c22287.html">
+<meta property="og:site_name" content="NoughtQ&#39;s Blog">
+<meta property="og:description" content="引入 虽然用了不少时间的 LLM，但是我从来没有花时间研究过如何写好提示词，都是想到什么就输入什么，从不在意提示词的质量。对于一般场景，我们的输入随意一些并不会特别影响 LLM 的输出结果；而且随着技术的不断改进，只要简单讲几句，LLM 就能参透我们的意思。然而，如果要求 LLM 完成一些复杂的任务，那么只是简单地提一些要求，LLM 就无法按照我们预期所想的那样解决问题，总会在某些地方出岔子。这个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.noughtq.top/img/avatar.png">
+<meta property="article:published_time" content="2025-03-04T12:44:32.325Z">
+<meta property="article:modified_time" content="2025-03-09T09:29:39.870Z">
+<meta property="article:author" content="NoughtQ">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="Prompt Engineering">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.noughtq.top/img/avatar.png"><link rel="shortcut icon" href="/img/avatar.png"><link rel="canonical" href="http://blog.noughtq.top/posts/38c22287.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":true,"top_n_per_article":5,"unescape":true,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '浅谈提示工程',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-03-09 17:29:39'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/copyright.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw far fa-newspaper"></i><span> 文章</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw far fa-address-card"></i><span> 简介</span></a></li><li><a class="site-page child" href="/plan/"><i class="fa-fw far fa-calendar"></i><span> 安排</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="NoughtQ's Blog"><span class="site-name">NoughtQ's Blog</span></a></span><div id="menus"></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw far fa-newspaper"></i><span> 文章</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li></ul></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-heart"></i><span> 关于</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/about/"><i class="fa-fw far fa-address-card"></i><span> 简介</span></a></li><li><a class="site-page child" href="/plan/"><i class="fa-fw far fa-calendar"></i><span> 安排</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i></a><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">浅谈提示工程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-04T12:44:32.325Z" title="发表于 2025-03-04 20:44:32">2025-03-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-09T09:29:39.870Z" title="更新于 2025-03-09 17:29:39">2025-03-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CS-%E7%AC%94%E8%AE%B0/">CS 笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">5.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="浅谈提示工程"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><div class="note blue icon-padding flat"><i class="note-icon fas fa-pencil"></i><p><span class="fakeTitle">引入</span><br>
+虽然用了不少时间的 LLM，但是我从来没有花时间研究过如何写好提示词，都是想到什么就输入什么，从不在意提示词的质量。对于一般场景，我们的输入随意一些并不会特别影响 LLM 的输出结果；而且随着技术的不断改进，只要简单讲几句，LLM 就能参透我们的意思。然而，如果要求 LLM 完成一些复杂的任务，那么只是简单地提一些要求，LLM 就无法按照我们预期所想的那样解决问题，总会在某些地方出岔子。这个时候，也许有些人就会红温，不仅抱怨道：“大模型怎么这么蠢啊！”——也许这不是因为 LLM 不够聪明，而是我们人类没有发挥出 LLM 的真正能力。</p>
+<p>最近科研项目那边分配给我的任务是修改原有的提示词，以提高程序生成可视化数据的成功率。由于我是第一次做这个任务，所以在这个过程中遇到了不少问题，自以为修改后的提示词考虑的更全面，但是实际跑下来的成功率一跌再跌，很令我沮丧。所以我认为很有必要学习<strong>提示工程</strong>(prompt engineering)相关的知识，希望能利用这些知识写出高质量的提示词，少走一些弯路。</p>
+<p>如果你和我一样是提示工程方面的小白的话，那么希望这篇文章对你有所帮助；如果你是经验丰富的提示工程师的话，那就敬请不吝赐教~</p>
+</div>
+<h2 id="提示工程">提示工程</h2>
+<h3 id="提示词">提示词</h3>
+<p>在了解提示工程之前，首先要知道“<strong>提示词</strong>”(prompt)是什么。简单来说，它是<u>为模型提供的输入，引导 AI 模型来生成特定的输出</u>。</p>
+<p>不过，从更本质的层面来看提示词的话，我十分赞同李继刚老师的观点：提示词的本质并非沟通，而是<strong>表达</strong>；而表达是让符号产生意义的活动。《关于说话的一切》这本书将「表达」拆解为三个核心部分：</p>
+<ul>
+<li><strong>本意</strong>：存在于脑海中的想法、模糊概念或方法论，这是表达中最根本的部分。本意的三要素为：
+<ul>
+<li>切身真实的<strong>经验</strong></li>
+<li><strong>词汇</strong>与经验的映射关系</li>
+<li>对<strong>原理</strong>的理解</li>
+</ul>
+</li>
+<li><strong>文意</strong>：用恰当的语言符号表达脑海中的想法，这是表达中唯一能被我们直接修正的部分。</li>
+<li><strong>解意</strong>：对方接收自己的本意并转化为文字表达式，会在大脑中进行“解压缩”，试图理解文字背后的意思。本意与解意之间的差异，正是误解产生的源头，也是为什么有时候给大模型提示词后，它无法按预期回答的原因。</li>
+</ul>
+<h3 id="提示工程-2">提示工程</h3>
+<p>而<strong>提示工程</strong>就是一种通过设计和调整输入（提示词）来改善模型性能或控制器输出结果的技术。提示词的好坏可能让模型的回答质量有着天壤之别，因此为了获得理想的模型结果，我们需要不断调整、设计好的提示词，这就是提示工程要做的事。</p>
+<div class="note warning flat"><p><span class="fakeTitle">误区警告</span><br>
+很多人会认为，提示词指的就是<strong>用户的输入</strong>——这是常见的误区。实际上，提示词的输入不仅包含用户的输入，还有其他来源，比如<strong>预设的提示词</strong>，甚至<strong>模型自己的输出</strong>都是提示词的一部分。</p>
+</div>
+<p>简言之，<strong>所有会被模型用于预测输出结果的内容，都是提示词</strong>。</p>
+<h3 id="重要性">重要性</h3>
+<p>提示工程很重要。</p>
+<ul>
+<li>
+<p>提示词是调用大模型能力的<strong>接口</strong>，是<u>用好</u>大模型能力的核心</p>
+</li>
+<li>
+<p>在 LLM 应用的开发和性能优化的过程中，提示工程贯穿始终</p>
+  <div style="text-align: center">
+      <img src="../img/prompt/1.png" width="90%">
+  </div>
+<ul>
+<li>一切 LLM 应用推荐先从提示工程着手建立原型，作为<strong>性能优化的基石</strong></li>
+<li>若提示工程无法满足需求，再分析性能瓶颈的原因，采取进一步策略</li>
+<li>比如通过 <strong>RAG</strong>（检索增强生成）构造更好的模型输入，所以 RAG 本质上也是一种提示工程</li>
+<li>若要使用<strong>微调</strong>(fine-tuning)，通过提示工程构造高质量的微调数据也是微调成功的关键</li>
+<li>模型性能提升后，数据质量进一步提升，将更优质的数据用于模型训练，然后更好的模型产出更好的数据，如此构建正向迭代循环（也称<strong>数据飞轮</strong>），其中每个环节都离不开好的提示工程</li>
+</ul>
+</li>
+</ul>
+<h2 id="如何写好提示词">如何写好提示词</h2>
+<h3 id="六大原则">六大原则</h3>
+<p>OpenAI 官方的提示工程文档总结了六大原则（或者说最佳实践），并提供了一些可行策略，个人觉得总结得相当清晰全面，有很好的借鉴意义。下面给出提炼后的一些文字，如果不清楚其背后意思的话，强烈建议阅读<a target="_blank" rel="noopener" href="https://platform.openai.com/docs/guides/prompt-engineering#tactic-evaluate-model-outputs-with-reference-to-gold-standard-answers">原文</a>，里面还给出相应的例子。</p>
+<div class="note icon-padding flat"><i class="note-icon fas fa-circle-info"></i><p><span class="fakeTitle">阅读前须知</span><br>
+下面提到的例子中会涉及到三种不同的角色：</p>
+<ul>
+<li>USER：用户，即发起对话的一方，提出问题或请求，期望从模型获得回答或帮助。</li>
+<li>ASSISTANT：就是模型，负责理解用户的输入并生成相应的回答。</li>
+<li>SYSTEM：系统级的消息或通知。例如在一个特定应用中，若需要告知用户某项功能的变化或提供某些知道，那么可能会使用这一标签。但在一般的模型对话中，这一角色并不常见。</li>
+</ul>
+<p>另外，以下的六个原则是按照从易到难的顺序排列的，所以建议各位在实践过程中，可以先尝试着遵循前面的原则和策略，熟练掌握之后再学习后面的原则和策略，以达到循序渐进的效果。</p>
+</div>
+<ol>
+<li><strong>编写清晰的指令</strong>(Write clear instructions)</li>
+</ol>
+<ul>
+<li>在查询中<strong>包含详细信息</strong>（任何重要的细节以及上下文），以获得更相关的答案，这样可以减少模型的猜测和误解，从而提高交互效率和满意度。</li>
+<li>要求模型<strong>扮演某个角色</strong>，这样模型会根据角色特性来作答，使回答根据特色和针对性，因此输出质量得以提升。</li>
+<li>使用<strong>分隔符</strong>（比如三重引号<code>&quot;&quot;&quot;</code>、XML标记<code>&lt;xxx&gt;</code>、节标题等等）清晰地表示输入的不同部分，这为模型理解复杂任务带来便利，也能减少模型的猜测和误解。</li>
+<li>指定完成任务所需的<strong>步骤</strong>，使模型更容易 follow 你的意思。</li>
+<li>提供<strong>实例</strong>。通常的话提供一般性的说明可能更有用，但是当模型需要复制一种难以明确描述的用户查询相应风格时，提供实例可能更容易，这样的提示称为 <strong>“few-shot”</strong> 提示。</li>
+<li>指定输出的期望长度，比如指定词数、句子数、段落数等等。
+<ul>
+<li>但是通常情况下模型很难生成指定数量的单词（原因很多，比如模型以 token 为单位生成文本等等），所以最好指定一个较为宽泛的词数范围</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>
+<p><strong>提供参考文本</strong>(Provide reference text)</p>
+ <div class="note red icon-padding flat"><i class="note-icon fas fa-bug"></i><p><span class="fakeTitle">Bug</span><br>
+很多模型会很自信地编造假答案，特别是当被询问奇特的话题、引用和网址时（这种现象称为模型的“<strong>幻觉</strong>”(hallucination)）。</p>
+<p><strong>个人经历</strong>：寒假的时候，我让 ds 给我推荐一些参考论文，它大概列出了七八篇论文，并给出对应的链接，结果只有一两个链接是打得开的。然后我用 Google 搜了一下这些打不开的论文，发现并不存在这些论文；而且那些有正确链接的论文，不论是标题还是正文内容都与它介绍的有所出入。然后我就和 ds battle 了一阵子，但它还是坚持己见，不仅保持原有的错误链接，还给我推荐了一些其他带错误链接的论文——真的很无语…</p>
+</div>
+</li>
+</ol>
+<ul>
+<li>指示模型使用<strong>参考文本</strong>（与当前查询相关的可信信息）进行回答，这样可以减少模型过分自由发挥的可能性</li>
+<li>指示模型使用<strong>参考文本的引文</strong>进行回答，这样可以检验模型是否能从参考文本中正确找到答案</li>
+</ul>
+<ol start="3">
+<li><strong>将复杂的任务拆分成子任务</strong>(Split complex tasks into simpler substasks)</li>
+</ol>
+<ul>
+<li>使用<strong>意图分类</strong>来识别用户查询的最相关指令。
+<ul>
+<li>当处理不同情况的任务时，可以先将任务按类型分类，然后为每种类型设计特定的步骤。复杂任务可以分解成小阶段，每个阶段也有自己的指令，这样整个处理过程更有组织和效率。</li>
+<li>优点：每次查询仅包含执行任务某个阶段所需的指令，因此相比通过单次查询来完成整个任务的错误率更低，而且也可以降低 API 成本</li>
+</ul>
+</li>
+<li>对于需要非常长对话的对话应用程序，<strong>总结</strong>或<strong>过滤</strong>以前的对话。
+<ul>
+<li>由于模型只能记住固定长度的上下文，因此对话不能无限地进行下去</li>
+<li>解决方案：
+<ul>
+<li>对前几轮对话进行<strong>总结</strong>。可以让系统在输入对话达到一定长度时自动触发一个查询，让模型总结前面的会话，将总结作为系统回复的一部分。或者也可以在整个对话过程中，把前面的对话内容分批次进行总结</li>
+<li>根据当前查询，选择前面对话中最相关的部分（<strong>过滤</strong>）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>逐段总结</strong>长文档并递归构建完整概要。
+<ul>
+<li>每个段落可以作为一个查询来总结，然后这些段落的总结再连接在一起，形成整体的总结。这个过程可以重复进行，直到对整段文本进行总结。</li>
+<li>如果后面的内容需要前面的内容作为背景才能理解，那么在总结后面部分的时候，可以在查询中包含之前已经总结过的内容，这样可以帮助模型更好地理解整个文档。</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li><strong>给 GPT “思考”实践（给出过程）</strong>(Give the model time to “think”)</li>
+</ol>
+<ul>
+<li>指示模型在得出结论之前<strong>自行解决问题</strong>。有时候，我们明确地指导模型在得出结论之前先进行从头至尾的推理，会得到更好的结果。
+<ul>
+<li>举例：比如让模型批改学生作业（包括其他解决<strong>复杂的计算问题</strong>的情景），它有可能被学生的错误思路带偏了，从而认为学生的错误答案是正确的。这时可以让模型先生成自己的解答，这样的话它更容易发现学生回答的错误之处。</li>
+</ul>
+</li>
+<li>使用<strong>内心独白</strong>或一系列的查询来隐藏模型的推理过程。
+<ul>
+<li>因为有的时候，模型的推理过程不适合于用户分享，比如在辅导应用程序中，我们可能希望鼓励学生自己找出答案，但是模型对学生解答的推理过程可能会向学生透露答案。</li>
+<li>这种情况比较少见，所以我就不展开介绍了（反倒是现在很多模型都提供了推理/深度思考的功能）</li>
+</ul>
+</li>
+<li>询问模型是否在之前的处理中遗漏了任何内容，即<strong>自我检查</strong>。
+<ul>
+<li>还是因为模型能够阅读的上下文有限，所以很容易遗忘之前的内容。因此建议在大量文本输入的情况下，让模型进行自己检查，可以帮助我们收获更加准确的答案</li>
+</ul>
+</li>
+</ul>
+<ol start="5">
+<li><strong>使用外部工具</strong>(Use external tools)</li>
+</ol>
+<ul>
+<li>
+<p>使用<strong>基于嵌入的搜索</strong>来实现高效的知识检索。</p>
+<ul>
+<li>目前几乎所有主流大模型都有类似“<strong>联网搜索</strong>”的功能，所以现在这条策略的实现相当简单（以前的话可能还需要自己嵌入文本，甚至需要封装成一个 API 或函数实现）</li>
+</ul>
+</li>
+<li>
+<p>使用<strong>代码</strong>执行来执行更准确的计算或<strong>调用外部 API</strong>。</p>
+<ul>
+<li>我们不能依赖GPT自己精确地进行算术或长时间的计算（个人经验：通常让模型帮我们计算一些东西，哪怕计算量再小，它可能也不高兴帮你算，而是给你代码）</li>
+<li>在需要的情况下，可以指导模型编写和运行代码，而不是自己进行计算。特别是，可以指导模型将要运行的代码放入<strong>特定格式</strong>，如三重反引号。在产生输出后，可以提取并运行代码。</li>
+<li>如有必要，可以将代码执行引擎（如 Python 解释器）的输出作为模型下一次查询的输入。</li>
+</ul>
+<div class="note purple icon-padding flat"><i class="note-icon fas fa-list"></i><p><span class="fakeTitle">例子</span><br>
+用 ChatGPT 计算调和级数 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>+</mo><mstyle displaystyle="true" scriptlevel="0"><mfrac><mn>1</mn><mn>2</mn></mfrac></mstyle><mo>+</mo><mo>⋯</mo><mo>+</mo><mstyle displaystyle="true" scriptlevel="0"><mfrac><mn>1</mn><mn>100</mn></mfrac></mstyle></mrow><annotation encoding="application/x-tex">1 + \dfrac{1}{2} + \dots + \dfrac{1}{100}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="minner">⋯</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+<div style="text-align: center, margin-bottom: 10px">
+    <img src="../img/prompt/2.png" width="100%">
+</div>
+<div style="text-align: center">
+    <img src="../img/prompt/3.png" width="70%">
+</div>
+<blockquote>
+<p>Deepseek 貌似没法用 Python 解释器…</p>
+</blockquote>
+</div>
+</li>
+</ul>
+<ol start="6">
+<li><strong>测试的系统性变化</strong>(Test changes systematically)</li>
+</ol>
+<ul>
+<li>
+<p>使用参考标准答案评估模型输出。评估程序对优化系统设计很有帮助。良好的评估具有以下特性：</p>
+<ul>
+<li>
+<p>贴近用户的使用场景（至少多样化）</p>
+</li>
+<li>
+<p>包含大量测试用例，以覆盖更大的统计范围，具体可参考下表：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">检测到的差异</th>
+<th style="text-align:left">95%置信度所需的样本大小</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">30%</td>
+<td style="text-align:left">~10</td>
+</tr>
+<tr>
+<td style="text-align:left">10%</td>
+<td style="text-align:left">~100</td>
+</tr>
+<tr>
+<td style="text-align:left">3%</td>
+<td style="text-align:left">~1,000</td>
+</tr>
+<tr>
+<td style="text-align:left">1%</td>
+<td style="text-align:left">~10,000</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>易于自动化</p>
+</li>
+</ul>
+</li>
+<li>
+<p>输出的评估可以由<strong>计算机、人或两者配合</strong>来完成的。</p>
+</li>
+<li>
+<p>计算机可以使用<strong>固定标准</strong>以及某些<strong>主观或模糊的标准自动化评估方式</strong>，其中模型的输出结果会由另外一个测试程序进行评估结果的正确性。</p>
+</li>
+<li>
+<p>个人感觉这个原则可能在<strong>科研</strong>过程中用的比较多，我自己就是跟着负责评估方法搭建的学长干活（<s>虽然我的任务与评估没有直接的关系</s>），也看了一些相关的论文（比如 VisEval 就是一个 LLM + 可视化的评估框架，它相比一般的大模型能有效提升可视化图像的生成质量），所以对此深有感触。</p>
+</li>
+</ul>
+<h3 id="提示词方法论">提示词方法论</h3>
+<p>现在有各种各样的提示词框架，帮助我们写好提示词，其中我比较推荐 <strong>LangGPT</strong>（中文名为“<strong>结构化提示词</strong>”）这一提示词方法论。用这种方法论写出来的提示词大概长这个样子：</p>
+<figure class="highlight md"><table><tr><td class="code"><pre><span class="line"><span class="section"># Role: 产品营销文案生成助手  </span></span><br><span class="line"></span><br><span class="line"><span class="section">## Profile  </span></span><br><span class="line"><span class="bullet">-</span> author: LangGPT  </span><br><span class="line"><span class="bullet">-</span> version: 1.0  </span><br><span class="line"><span class="bullet">-</span> language: 中文  </span><br><span class="line"><span class="bullet">-</span> description: 你是一个专业的营销文案撰写助手，擅长为不同产品撰写高转化率的营销文案，风格可以根据目标受众调整。  </span><br><span class="line"></span><br><span class="line"><span class="section">## Skills  </span></span><br><span class="line"><span class="bullet">1.</span> 分析目标市场，理解用户痛点与需求。  </span><br><span class="line"><span class="bullet">2.</span> 结合产品特点，生成吸引人的文案。  </span><br><span class="line"><span class="bullet">3.</span> 使用说服性语言，引导用户采取行动。  </span><br><span class="line"><span class="bullet">4.</span> 根据不同平台（社交媒体、电商平台、广告投放等）优化文案格式和风格。  </span><br><span class="line"></span><br><span class="line"><span class="section">## Rules  </span></span><br><span class="line"><span class="bullet">1.</span> 突出产品的核心卖点和独特价值。  </span><br><span class="line"><span class="bullet">2.</span> 使用清晰、有吸引力的标题。  </span><br><span class="line"><span class="bullet">3.</span> 采用情感驱动的语言，增加用户共鸣。  </span><br><span class="line"><span class="bullet">4.</span> 结尾包含清晰的行动号召（CTA），如“立即购买”或“免费试用”。  </span><br><span class="line"></span><br><span class="line"><span class="section">## Workflows  </span></span><br><span class="line"><span class="bullet">1.</span> 识别目标受众（年龄、性别、兴趣等）。  </span><br><span class="line"><span class="bullet">2.</span> 分析产品特点，找出独特卖点。  </span><br><span class="line"><span class="bullet">3.</span> 生成三种不同风格的文案（正式、幽默、情感共鸣）。  </span><br><span class="line"><span class="bullet">4.</span> 选择最优文案，并进行优化调整。  </span><br><span class="line"></span><br><span class="line"><span class="section">## 示例输入  </span></span><br><span class="line">产品：智能护眼台灯  </span><br><span class="line">目标受众：大学生、办公族  </span><br><span class="line">平台：淘宝电商  </span><br><span class="line"></span><br><span class="line"><span class="section">## 示例输出  </span></span><br><span class="line">✨ <span class="strong">**标题**</span>: “智能护眼台灯，呵护双眼，提升专注力！”  </span><br><span class="line">📌 <span class="strong">**产品亮点**</span>: 5档亮度调节、自然光模拟、长时间使用不刺眼。  </span><br><span class="line">💡 <span class="strong">**核心文案**</span>:  </span><br><span class="line"><span class="quote">&gt; 长时间用眼让你眼睛疲劳？这款智能护眼台灯采用 <span class="strong">**无蓝光危害技术**</span>，模拟自然光线，让你的眼睛更轻松。适用于 <span class="strong">**学习、办公、阅读**</span>，为你的每一次专注护航！  </span></span><br><span class="line">🔥 <span class="strong">**限时优惠**</span>：今日下单立减30元！点击购买👉【链接】  </span><br></pre></td></tr></table></figure>
+<p>这种提示词具备以下优势：</p>
+<ul>
+<li>
+<p><strong>层级结构</strong>，具有更好的可读性和表达性。</p>
+<ul>
+<li>结构化提示词一般会用到以下属性词，此外用户也可以自定义其他层级以满足需求。
+<ul>
+<li>Role</li>
+<li>Profile、Rules</li>
+<li>Language、Description</li>
+</ul>
+</li>
+<li>丰富的层次结构也<strong>符合人类的表达习惯</strong>，与我们日常写文章时有标题、段落、副标题、子段落等丰富的层级结构是一样的，而大模型也正是在大量的文章、书籍中训练得到，因而这样的提示词也符合大模型的认知习惯。</li>
+</ul>
+</li>
+<li>
+<p>提升人和大模型对提示词的<strong>语义认知</strong></p>
+<ul>
+<li>人：提示词内容一目了然，语义清晰，只需依样画瓢写提示词就 OK 了；对于复杂情景，可能需要多次迭代优化，但是编写提示词的任务量不会很大。</li>
+<li>大模型：结构化提示词起到了聚拢相同语义、梳理和归纳语义的作用，缓解了提示词中不当内容的干扰，便于模型理解提示词的语义。</li>
+</ul>
+</li>
+<li>
+<p>使用特定的<strong>属性词</strong>定向唤醒大模型的<strong>深层能力</strong></p>
+<ul>
+<li>
+<p>实践发现，角色扮演能提升大模型在某一领域的表现。</p>
+</li>
+<li>
+<p>为大模型设定规则，以缓解大模型幻觉的问题。</p>
+</li>
+<li>
+<p>提示词中可能会用到的一些属性词：</p>
+<figure class="highlight md"><table><tr><td class="code"><pre><span class="line"><span class="section"># Role: 设置角色名称，一级标题，作用范围为全局</span></span><br><span class="line"></span><br><span class="line"><span class="section">## Profile: 设置角色简介，二级标题，作用范围为段落</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Author: yzfly    设置 Prompt 作者名，保护 Prompt 原作权益</span><br><span class="line"><span class="bullet">-</span> Version: 1.0     设置 Prompt 版本号，记录迭代版本</span><br><span class="line"><span class="bullet">-</span> Language: 中文   设置语言，中文还是 English</span><br><span class="line"><span class="bullet">-</span> Description:     一两句话简要描述角色设定，背景，技能等</span><br><span class="line"></span><br><span class="line"><span class="section">### Skill:  设置技能，下面分点仔细描述</span></span><br><span class="line"><span class="bullet">1.</span> xxx</span><br><span class="line"><span class="bullet">2.</span> xxx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">## Rules        设置规则，下面分点描述细节</span></span><br><span class="line"><span class="bullet">1.</span> xxx</span><br><span class="line"><span class="bullet">2.</span> xxx</span><br><span class="line"></span><br><span class="line"><span class="section">## Workflow     设置工作流程，如何和用户交流，交互</span></span><br><span class="line"><span class="bullet">1.</span> 让用户以 &quot;形式：[], 主题：[]&quot; 的方式指定诗歌形式，主题。</span><br><span class="line"><span class="bullet">2.</span> 针对用户给定的主题，创作诗歌，包括题目和诗句。</span><br><span class="line"></span><br><span class="line"><span class="section">## Initialization  设置初始化步骤，强调 prompt 各内容之间的作用和联系，定义初始化行为。</span></span><br><span class="line">作为角色 <span class="language-xml"><span class="tag">&lt;<span class="name">Role</span>&gt;</span></span>, 严格遵守 <span class="language-xml"><span class="tag">&lt;<span class="name">Rules</span>&gt;</span></span>, 使用默认 <span class="language-xml"><span class="tag">&lt;<span class="name">Language</span>&gt;</span></span> 与用户对话，友好的欢迎用户。然后介绍自己，并告诉用户 <span class="language-xml"><span class="tag">&lt;<span class="name">Workflow</span>&gt;</span></span>。</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li>
+<p>像<strong>代码</strong>开发一样构建生产级的提示词</p>
+<ul>
+<li>代码和提示词有一定相似之处：<strong>代码</strong>是调用<strong>机器</strong>能力的工具，而<strong>提示词</strong>是调用<strong>大模型</strong>能力的工具，所以提示词越来越像新时代的编程语言。</li>
+<li>结构化提示词的规范和模块化设计，能够大大为后续的提示词<strong>维护升级</strong>，以及<strong>多人协同开发设计</strong>带来便利。</li>
+<li>结构化提示词还能提高提示词的<strong>复用</strong>能力，比如某些提示词的规则如果能适用于其他情景，那就无需重复造轮子，直接套用就行了。</li>
+<li>甚至可以使用 Git 等工具像管理代码一样对 prompt 进行版本管理。</li>
+</ul>
+</li>
+</ul>
+<p>那么我们该如何构建这样的提示词呢？结构化提示词的作者给出了以下建议：</p>
+<ul>
+<li>
+<p>构建<strong>全局思维链</strong>。LangGPT 的思维链如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Role (角色) -&gt; Profile（角色简介）—&gt; Profile 下的 skill (角色技能) -&gt; Rules (角色要遵守的规则) -&gt; Workflow (满足上述条件的角色的工作流程) -&gt; Initialization (进行正式开始工作的初始化准备) -&gt; 开始实际使用</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个好的提示词，内容结构上最好也是<strong>逻辑清晰连贯</strong>的。结构化提示词方法将久经考验的逻辑思维链路融入了结构中，大大降低了思维链路的构建难度。</li>
+<li>自己写提示词时，不妨<strong>参考优质模板</strong>的全局思维链路，熟练掌握后，完全可以对其进行增删改留调整，得到一个适合自己使用的模板。</li>
+</ul>
+</li>
+<li>
+<p>保持上下文<strong>语义一致性</strong></p>
+<ul>
+<li><strong>格式</strong>语义一致性：<strong>标识符</strong>的标识功能前后一致，最好不用混用。比如 <code>#</code> 既作为 Markdown 的标题，又作为 Python 的注释，可能会造成行为的前后不一致，对模型理解提示词结构产生干扰。</li>
+<li><strong>内容</strong>语义一致性：思维链路上的<strong>属性词</strong>语义合适，并且和相应模块内容的语义一致。比如 <code>Rules</code> 属性词处应该描述模型需要遵守的规则，而不应该描述具体要做什么事。</li>
+</ul>
+</li>
+<li>
+<p>有机结合<strong>其他提示词技巧</strong>：我们不必局限于结构化提示词这一种方法论，还可以兼收并蓄，吸收其他提示词方法的长处，从而构建更为强大的高质量提示词。</p>
+</li>
+</ul>
+<hr>
+<p>当然，这种方法也有一定的局限性：</p>
+<ul>
+<li><strong>大模型自身的问题</strong>无法通过提示词来彻底解决，比如幻觉、指示老旧、数学推理能力弱等</li>
+<li>相同的提示词在<strong>不同模型</strong>中的表现不同</li>
+<li>我在科研过程中（我们的项目里用到的提示词就类似这种结构化提示词）认识到的一个问题：正如这种方法论的名称，由于过于结构化，有时可能会过分限制大模型的发挥，僵化其思维，从而无法得到理想的结果。这就好比让你写一篇八股文，即使写得再精彩，也无法到达优秀散文的境界。</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>由于时间有限，我对提示工程的了解仅限于此，所以分享也就告一段落了（<s>有些戛然而止的感觉</s>）。正如标题所言，我的这篇分享仅仅是对我阅读过的一些提示工程教程的一些汇总，外加到目前为止我自己的一些经历和粗浅的感受，所以说不上是对提示工程的系统性学习，但是也足以让各位读者对这一领域有一个大致的模糊的认识。我想今后几年内，LLM 依旧会是 AI 界的浪潮之巅，所以提示工程这门技术的重要性不言而喻。随着经验的积累，我想将来会对提示工程有着更深的了解，到时候再来 refine 这篇分享~</p>
+<p>最后用一句话结束今天的分享：Prompt is All You Need!</p>
+<h2 id="参考资料">参考资料</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/langgptai/LangGPT">开源仓库：LangGPT</a></li>
+<li><a target="_blank" rel="noopener" href="https://langgptai.feishu.cn/wiki/VXmowI2boiqVFVkj9vlcNkhNnce">云中江树 | LangGPT 社区年度分享：AI 交流的艺术</a></li>
+<li><a target="_blank" rel="noopener" href="https://langgptai.feishu.cn/wiki/IpdUwZRzgiYYH7kuOsDc3fWrnkg?fromScene=spaceOverview">熊猫Jay | 万字解读 ChatGPT 提示词最佳案例</a></li>
+<li><a target="_blank" rel="noopener" href="https://langgptai.feishu.cn/wiki/ASXOwDbTEiH9CUkXFA5cLHumn88">云中江树 | 结构化提示词系统论述： 构建高性能 Prompt 之路</a></li>
+<li><a target="_blank" rel="noopener" href="https://langgptai.feishu.cn/wiki/AYMWwBPaSih46WkAo9jcfKkfntg">李继刚 | 提示词的道和术</a></li>
+<li><a target="_blank" rel="noopener" href="https://platform.openai.com/docs/guides/prompt-engineering">OpenAI | Prompt engineering</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__title"><span class="post-copyright-info"><h>浅谈提示工程</h></span></div><div class="post-copyright__type"><span class="post-copyright-info"><a href="http://blog.noughtq.top/posts/38c22287.html">http://blog.noughtq.top/posts/38c22287.html</a></span></div><div class="post-copyright-m"><div class="post-copyright-m-info"><div class="post-copyright-a" style="display: inline-block;width: 120px"><h>作者</h><div class="post-copyright-cc-info"><h>NoughtQ</h></div></div><div class="post-copyright-c" style="display: inline-block;width: 120px"><h>发布于</h><div class="post-copyright-cc-info"><h>2025-03-04</h></div></div><div class="post-copyright-u" style="display: inline-block;width: 120px"><h>更新于</h><div class="post-copyright-cc-info"><h>2025-03-09</h></div></div><div class="post-copyright-c" style="display: inline-block;width: 120px"><h>许可协议</h><div class="post-copyright-cc-info"><a class="icon" rel="noopener" target="_blank" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a><a rel="noopener" target="_blank" title="CC BY 4.0" href="https://creativecommons.org/licenses/by/4.0/deed.zh">CC BY 4.0</a></div></div></div></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/AI/">AI</a><a class="post-meta__tags" href="/tags/LLM/">LLM</a><a class="post-meta__tags" href="/tags/Prompt-Engineering/">Prompt Engineering</a></div><div class="post_share"></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/posts/65e331c3.html" title="大二秋冬 课程回忆录"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">大二秋冬 课程回忆录</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><p>如果有什么问题或想法，欢迎大家在评论区留言~ </p><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">提示工程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="toc-number">1.1.</span> <span class="toc-text">提示词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B-2"><span class="toc-number">1.2.</span> <span class="toc-text">提示工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-number">1.3.</span> <span class="toc-text">重要性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%86%99%E5%A5%BD%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="toc-number">2.</span> <span class="toc-text">如何写好提示词</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AD%E5%A4%A7%E5%8E%9F%E5%88%99"><span class="toc-number">2.1.</span> <span class="toc-text">六大原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%96%B9%E6%B3%95%E8%AE%BA"><span class="toc-number">2.2.</span> <span class="toc-text">提示词方法论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By NoughtQ</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="/js/tw_cn.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instantpage.min.js" type="module"></script><script>function panguFn () {
+  if (typeof pangu === 'object') pangu.autoSpacingPage()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js')
+      .then(() => {
+        pangu.autoSpacingPage()
+      })
+  }
+}
+
+function panguInit () {
+  if (false){
+    GLOBAL_CONFIG_SITE.isPost && panguFn()
+  } else {
+    panguFn()
+  }
+}
+
+document.addEventListener('DOMContentLoaded', panguInit)</script><div class="js-pjax"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/copy-tex.min.js"></script><script>(() => {
+  document.querySelectorAll('#article-container span.katex-display').forEach(item => {
+    btf.wrap(item, 'div', { class: 'katex-wrap'})
+  })
+})()</script><script>(()=>{
+  const getGiscusTheme = theme => {
+    return theme === 'dark' ? 'dark' : 'light'
+  }
+
+  const loadGiscus = () => {
+    const config = Object.assign({
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'NoughtQ/NoughtQ.github.io',
+      'data-repo-id': 'R_kgDOMaFluw',
+      'data-category-id': 'DIC_kwDOMaFlu84ChH-z',
+      'data-mapping': 'pathname',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true
+    },null)
+
+    const ele = document.createElement('script')
+    for (let key in config) {
+      ele.setAttribute(key, config[key])
+    }
+    document.getElementById('giscus-wrap').appendChild(ele)
+  }
+
+  const changeGiscusTheme = theme => {
+    const sendMessage = message => {
+      const iframe = document.querySelector('iframe.giscus-frame')
+      if (!iframe) return
+      iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app')
+    }
+
+    sendMessage({
+      setConfig: {
+        theme: getGiscusTheme(theme)
+      }
+    });
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if ('Giscus' === 'Giscus' || !true) {
+    if (true) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment= loadGiscus
+  }
+})()</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script id="canvas_nest" defer="defer" color="50,50,50" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=4.13.0"></script></div></div></body></html>
